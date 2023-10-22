@@ -1,7 +1,9 @@
+const bcryptjs = require('bcryptjs');
 const CustomError = require("../utils/customError")
 const authServices = require('../services/auth.service');
 const { generateToken } = require("../utils/jwtToken");
 const sendEmail = require("../utils/sendMail");
+
 
 exports.signup = async (req, res, next) => {
     try {
@@ -15,39 +17,41 @@ exports.signup = async (req, res, next) => {
         await user.save({ validateBeforeSave: false })
 
         // send verification mail 
-        const info = await sendEmail(
-            user.email,
-            'Verify your account',
-            `
-            click this link to verify your account
-            <a href='${req.protocol}://${req.get('host')}${req.originalUrl}/verification/${verificationtToken}'>click</a>
-            `
-        );
+        // const info = await sendEmail(
+        //     user.email,
+        //     'Verify your account',
+        //     `
+        //     click this link to verify your account
+        //     <a href='${req.protocol}://${req.get('host')}${req.originalUrl}/verification/${verificationtToken}'>click</a>
+        //     `
+        // );
 
-        if (!info.messageId) {
-            console.log('email not sent')
-        }
+        // if (!info.messageId) {
+        //     console.log('email not sent')
+        // }
+
+        const { password, ...withOutPassword } = user.toObject();
 
         res.status(200).json({
             status: 'success',
             message: 'successfully sign up',
-            data: user,
+            data: withOutPassword,
         })
     } catch (error) {
         next(new CustomError(error.message, 400))
     }
 }
 
-exports.emailConfirmation = async(req, res, next) => {
+exports.emailConfirmation = async (req, res, next) => {
     const token = req.params.token;
     const user = await authServices.getUserByToken(token);
-    if(!user){
+    if (!user) {
         const error = new CustomError('invalid token, send request again')
         return next(error);
     }
-    
+
     const expried = new Date() > new Date(user.verifyTokenExpiresDate)
-    if(expried){
+    if (expried) {
         const error = new CustomError('token expired. send new request')
         return next(error);
     }
@@ -56,7 +60,7 @@ exports.emailConfirmation = async(req, res, next) => {
     user.verifyToken = undefined;
     user.verifyTokenExpiresDate = undefined;
 
-    await user.save({validateBeforeSave: false})
+    await user.save({ validateBeforeSave: false })
 
     res.send('Verification Done');
 }
@@ -97,11 +101,13 @@ exports.login = async (req, res, next) => {
         }
 
         // compare user password
-        const isMatch = await user.comparePassword(user.password, password)
-        if (!isMatch) {
+        const isValidPassword = bcryptjs.compareSync(password, user.password);
+
+        if (!isValidPassword) {
             const error = new CustomError('invalid email or password, try currect', 400)
             return next(error)
         }
+
 
         // check if the user is verified
         // if(user.verified !== true){

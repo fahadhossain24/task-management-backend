@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors')
 const { errorHandler } = require('./middleware/errorHandler');
 const CustomError = require('./utils/customError');
 const authRouter = require('./routers/auth.route');
@@ -6,6 +7,7 @@ const authRouter = require('./routers/auth.route');
 const app = express();
 
 app.use(express.json())
+app.use(cors())
 
 app.use('/api/v1/auth', authRouter)
 

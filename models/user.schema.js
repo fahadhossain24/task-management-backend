@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
-const bcrypt = require('bcrypt');
+const bcryptjs = require('bcryptjs');
 const crypto = require('crypto');
 
 const userSchema = mongoose.Schema({
@@ -25,7 +25,6 @@ const userSchema = mongoose.Schema({
     },
     password: {
         type: String,
-        trim: true,
         required: [true, 'passwrod is required'],
         minLength: [6, 'password at least minimum 6 charecter']
     },
@@ -44,21 +43,20 @@ const userSchema = mongoose.Schema({
     verifyToken: String,
     verifyTokenExpiresDate: Date,
 },
-{
-    timestamps: true,
-})
+    {
+        timestamps: true,
+    })
 
-userSchema.pre('save', function(){
-    const hashedPassword = bcrypt.hashSync(this.password, 10);
-    this.password = hashedPassword;
-})
+userSchema.pre('save', function (next) {
+    const bcryptHashPattern = /^\$2a\$[0-9]{1,2}\$[A-Za-z0-9/.]{53}$/;
+    if (!bcryptHashPattern.test(this.password)) {
+        const hashedPassword = bcryptjs.hashSync(this.password, 8);
+        this.password = hashedPassword;
+    }
+    next();
+});
 
-userSchema.methods.comparePassword = function(password, userPassword){
-    const isMatch = bcrypt.compareSync(userPassword, password);
-    return isMatch
-}
-
-userSchema.methods.verificationToken = function(){
+userSchema.methods.verificationToken = function () {
     const token = crypto.randomBytes(32).toString('hex');
     this.verifyToken = token;
     const date = new Date();
