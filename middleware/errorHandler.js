@@ -1,6 +1,5 @@
 
 const devErrorResponse = (error, res) => {
-    console.log(error)
     res.status(error.statusCode).json({
         status: error.status,
         error: error.message,
