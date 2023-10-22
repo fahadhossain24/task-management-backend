@@ -11,26 +11,37 @@ const taskSchema = mongoose.Schema({
         type: String,
         enum: {
             values: ['low', 'high']
-        }
+        },
+        default: 'low',
     },
     deadline: Date,
     taskReminder: {
         type: String,
         enum: {
             values: ['true', 'false']
-        }
+        },
+        default: 'false',
     },
     taskVisibility: {
         type: String,
         enum: {
-            values: ['onlyMe', 'teamMembers']
-        }
+            values: ['private', 'public']
+        },
+        default: 'private',
     },
     taskRecurring: {
         type: String,
         enum : {
             values: ['deaily', 'weekly', 'monthly', 'yearly']
-        }
+        },
+        default: 'deaily',
+    },
+    taskStatus: {
+        type: String,
+        enum: {
+            values: ['new', 'in-progress', 'complete', 'cancelled'],
+        },
+        default: 'new'
     }
     
 })
