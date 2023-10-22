@@ -17,25 +17,25 @@ exports.signup = async (req, res, next) => {
         await user.save({ validateBeforeSave: false })
 
         // send verification mail 
-        // const info = await sendEmail(
-        //     user.email,
-        //     'Verify your account',
-        //     `
-        //     click this link to verify your account
-        //     <a href='${req.protocol}://${req.get('host')}${req.originalUrl}/verification/${verificationtToken}'>click</a>
-        //     `
-        // );
+        const info = await sendEmail(
+            user.email,
+            'Verify your account',
+            `
+            click this link to verify your account
+            <a href='${req.protocol}://${req.get('host')}${req.originalUrl}/verification/${verificationtToken}'>click</a>
+            `
+        );
 
-        // if (!info.messageId) {
-        //     console.log('email not sent')
-        // }
+        if (!info.messageId) {
+            console.log('email not sent')
+        }
 
-        const { password, ...withOutPassword } = user.toObject();
+        const { password, ...userInfo } = user.toObject();
 
         res.status(200).json({
             status: 'success',
             message: 'successfully sign up',
-            data: withOutPassword,
+            data: userInfo,
         })
     } catch (error) {
         next(new CustomError(error.message, 400))
@@ -118,13 +118,13 @@ exports.login = async (req, res, next) => {
         // call the generate token function for create a token
         const token = generateToken(user);
 
-        const { password: pwd, ...userWithOutPassword } = user.toObject();
+        const { password: pwd, ...userInfo } = user.toObject();
 
         res.status(200).json({
             status: 'success',
             message: 'successfully login',
             data: {
-                userWithOutPassword,
+                userInfo,
                 token
             },
         })
